@@ -1,27 +1,30 @@
 ﻿import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { Environment, useGLTF, OrbitControls  } from "@react-three/drei"
-import { SkinnedMesh, Matrix4, Vector3 } from "three";
+import { Matrix4, Vector3 } from "three";
 
 function MyElement3D() {
-    const model = useGLTF("./models/untitled.glb");
+    const model = useGLTF("./models/humangltf.gltf");
     const mesh = model.nodes.Cube.clone();
 
     const skinnedMeshRef = useRef();
-    const mixerRef = useRef();
-
     useFrame((state, deltaTime) => {
-        skinnedMeshRef.current.skeleton.update();
+        
+        // skinnedMeshRef.current.skeleton.update();
         updateVertexPositions(skinnedMeshRef.current, skinnedMeshRef.current.skeleton);
+        skinnedMeshRef.current.skeleton.bones.forEach((bone) => {
+            bone.updateMatrixWorld(true);
+        });
     });
 
     return (
         <>
-            {/* <directionalLight position={[1,1,1]} /> */}
             <Environment preset="sunset" />
             <OrbitControls />
-            {/* <primitive object={model.scene} /> */}
-            <primitive object={mesh} ref={skinnedMeshRef}/>
+            <skinnedMesh ref={skinnedMeshRef} geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton}>
+            {/* Additional settings or components for your SkinnedMesh */}
+            </skinnedMesh>
+            {/* <primitive object={model.scene} position={[3,3,3]} ref={skinnedMeshRef}/> */}
         </>
     )
 }
