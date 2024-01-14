@@ -1,73 +1,88 @@
-﻿import { useFrame } from "@react-three/fiber"
-import { Environment, useGLTF, OrbitControls  } from "@react-three/drei"
-import { Matrix4, Vector3 } from "three";
+﻿import { OrbitControls } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { useRef, useState } from 'react';
+import { Matrix4 } from 'three';
 
 function MyElement3D() {
-    const model = useGLTF("./models/humangltf.gltf");
-    const mesh = model.nodes.Cube.clone();
-    console.log(mesh)
-    const bone = mesh.skeleton.bones[0];
-
-    useFrame((state, deltaTime) => {
-        // skinnedMeshRef.current.skeleton.update();
-        updateVertexPositions(mesh, mesh.skeleton);
-        mesh.skeleton.bones.forEach((bone) => {
-            bone.updateMatrixWorld(true);
+    const UpperBody = () => {
+        const upperBodyRef = useRef();
+        const [rotationMatrix, setRotationMatrix] = useState(new Matrix4());
+      
+        useFrame(() => {
+          // Update animation logic for the upper body
+          // For example, rotate the upper body around the Y-axis
+          setRotationMatrix(rotationMatrix.makeRotationX(Math.sin(Date.now() * 0.001)));
+          upperBodyRef.current.rotation.setFromRotationMatrix(rotationMatrix);
         });
-        bone.rotation.x += 0.01;
-    });
+      
+        return (
+          <group ref={upperBodyRef}>
+            {/* Upper body geometry and materials */}
+            <mesh>
+              {/* <sphereGeometry args={[1, 32, 32]} /> */}
+              <boxGeometry args={[1, 2, 1]} />
+              <meshStandardMaterial color="blue" />
+            </mesh>
+      
+            {/* Left arm */}
+            <Arm position={[-1.5, 0, 0]} />
+      
+            {/* Right arm */}
+            <Arm position={[1.5, 0, 0]} />
+          </group>
+        );
+      };
+      
+      const Arm = ({ position }) => {
+        const armRef = useRef();
+        const [rotationMatrix, setRotationMatrix] = useState(new Matrix4());
+      
+        useFrame(() => {
+          // Update animation logic for the arms
+          // For example, rotate the arm around the Z-axis
+          setRotationMatrix(rotationMatrix.makeRotationZ(Math.sin(Date.now() * 0.001)));
+          armRef.current.rotation.setFromRotationMatrix(rotationMatrix);
+        });
+      
+        return (
+          <group position={position} ref={armRef}>
+            {/* Arm geometry and materials */}
+            <mesh>
+              {/* <cylinderGeometry args={[0.25, 0.25, 1.5, 32]} /> */}
+              <boxGeometry args={[0.5, 1.5, 0.5]} />
+              <meshStandardMaterial color="green" />
+            </mesh>
+      
+            {/* Forearm */}
+            <Forearm position={[0, -1.5, 0]} />
+          </group>
+        );
+      };
+      
+      const Forearm = ({ position }) => {
+        const forearmRef = useRef();
+        // Additional state and animation logic for the forearm if needed
+      
+        return (
+          <group position={position} ref={forearmRef}>
+            {/* Forearm geometry and materials */}
+            <mesh>
+              {/* <cylinderGeometry  args={[0.25, 0.25, 1.5, 32]} /> */}
+              <boxGeometry args={[0.5, 1.5, 0.5]} />
+              <meshStandardMaterial color="yellow" />
+            </mesh>
+          </group>
+        );
+      };
 
     return (
         <>
-            <Environment preset="sunset" />
             <OrbitControls />
-            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
+            <ambientLight />
+            <pointLight position={[10, 10, 10]} />
+            <UpperBody />
         </>
     )
 }
-
-function updateVertexPositions(skinnedMesh, skeleton) {
-    // Iterate over each vertex in the geometry
-    // 기하학의 각 꼭지점을 반복합니다.
-    const positionAttribute = skinnedMesh.geometry.attributes.position;
-    const skinIndicesAttribute = skinnedMesh.geometry.attributes.skinIndex;
-    const skinWeightsAttribute = skinnedMesh.geometry.attributes.skinWeight;
-  
-    for (let i = 0; i < positionAttribute.count; i++) {
-      // Initialize a 4x4 identity matrix
-      // 4x4 단위 행렬 초기화
-      const vertexMatrix = new Matrix4();
-  
-      // Sum up the transformations from each influencing bone
-      // 영향을 미치는 각 뼈의 변형을 요약합니다.
-      for (let j = 0; j < 4; j++) {
-        const boneIndex = skinIndicesAttribute.getX(i * 4 + j);
-        const boneWeight = skinWeightsAttribute.getX(i * 4 + j);
-  
-        // Get the bone matrix and scale it by the weight
-        // 뼈대 매트릭스를 가져와서 가중치에 따라 크기를 조정합니다.
-        if (skinnedMesh.skeleton.bones[boneIndex] == undefined) {
-            // console.log(positionAttribute.count)
-            // console.log(i * 4 + j);
-            return;
-        }
-
-        const boneMatrix = skeleton.bones[boneIndex].matrixWorld.clone();
-        boneMatrix.multiplyScalar(boneWeight);
-  
-        // Add the scaled bone matrix to the vertex matrix
-        vertexMatrix.multiplyMatrices(boneMatrix, vertexMatrix);
-      }
-  
-      // Apply the vertex matrix to the original vertex position
-      const originalPosition = new Vector3().fromBufferAttribute(positionAttribute, i);
-      originalPosition.applyMatrix4(vertexMatrix);
-  
-      // Update the vertex position in the buffer geometry
-      positionAttribute.setXYZ(i, originalPosition.x, originalPosition.y, originalPosition.z);
-    }
-    // Mark the buffer as needing an update
-    positionAttribute.needsUpdate = true;
-  }
 
 export default MyElement3D
