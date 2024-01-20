@@ -1,11 +1,12 @@
 ﻿import { useFrame } from "@react-three/fiber"
-import { Environment, useGLTF, OrbitControls  } from "@react-three/drei"
+import { useGLTF, OrbitControls  } from "@react-three/drei"
 import { Matrix4, Vector3 } from "three";
 import gsap from "gsap";
+import { useRef } from "react";
 
-function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAction, isBottomArmAction}) {
+function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAction, isBottomArmAction, cameraArea}) {
     const model = useGLTF("./models/robotarm.gltf");
-    console.log(model)
+    let isCameraUpdated = false;
     const mesh = model.nodes.Circle.clone();
     const rootBone = mesh.skeleton.bones[0];
     const topArmBone = mesh.skeleton.bones[1];
@@ -13,8 +14,9 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
     const bottomArmBone = mesh.skeleton.bones[3];
     const leftHandBone = mesh.skeleton.bones[4];
     const rightHand = mesh.skeleton.bones[5];
+    const ref = useRef();
     leftHandBone.ani = 1;
-
+    
     useFrame((state, delta) => {
         // skinnedMeshRef.current.skeleton.update();
         updateVertexPositions(mesh, mesh.skeleton);
@@ -44,13 +46,60 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
             middleArmBone.rotation.z += 0.005;
 
         if (isBottomArmAction)
-            bottomArmBone.rotation.z += 0.005;
+            bottomArmBone.rotation.z += 0.01;
+
+        if (isCameraUpdated == false) {
+            if (cameraArea == 0) {
+                gsap.timeline().to(
+                    state.camera.position,
+                    {
+                        duration: 2,
+                        x: 4,
+                        y: 10,
+                        z: 10,
+                        ease: "power3.inOut"
+                    }
+                )
+                // state.camera.position.set(4, 10, 10);
+                // ref.current.target.set(0, 0, 0);
+            }
+            else if (cameraArea == 1) {
+                gsap.timeline().to(
+                    state.camera.position,
+                    {
+                        duration: 2,
+                        x: -10,
+                        y: 5,
+                        z: -5,
+                        ease: "power3.inOut"
+                    }
+                )
+                // state.camera.position.set(-10, 5, -5);
+                // ref.current.target.set(3, 3, 3);
+            }
+            else if (cameraArea == 2) {
+                gsap.timeline().to(
+                    state.camera.position,
+                    {
+                        duration: 2,
+                        x: 10,
+                        y: -5,
+                        z: -5,
+                        ease: "power3.inOut"
+                    }
+                )
+                // state.camera.position.set(10, -5, -5);
+                // ref.current.target.set(-3, -3, -3);
+            }
+            isCameraUpdated = true;
+        }
     });
 
     return (
         <>
-            <Environment preset="sunset" />
-            <OrbitControls />
+            {/* <Environment preset="sunset" /> */}
+            <directionalLight position={[1, 1, 1]} intensity={5}/>
+            <OrbitControls ref={ref}/>
             <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton}  />
         </>
     )

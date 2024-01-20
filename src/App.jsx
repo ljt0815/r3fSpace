@@ -11,6 +11,7 @@ function App() {
   const [isTopArmAction, setTopArmAction] = useState(false);
   const [isMiddleArmAction, setMiddleArmAction] = useState(false);
   const [isBottomArmAction, setBottomArmAction] = useState(false);
+  const [cameraArea, setCameraArea] = useState(0);
 
   return (
     <>
@@ -19,13 +20,15 @@ function App() {
       <Button name="중앙팔회전" onClick={() => setMiddleArmAction(!isMiddleArmAction)}/>
       <Button name="아랫팔회전" onClick={() => setBottomArmAction(!isBottomArmAction)}/>
       <Button name="집게" onClick={() => setHandAction(!isHandAction)}/>
+      <div style={{marginBottom: "5px"}}></div>
+      <Button name="카메라 이동" onClick={() => setCameraArea(cameraArea >= 2 ? 0 : cameraArea + 1)}/>
       <Canvas
         camera={{
           fov: 70,
           position: [4, 10, 10]
         }}>
         <MyElement3D isHandAction={isHandAction} isRootAction={isRootAction} isTopArmAction={isTopArmAction}
-          isMiddleArmAction={isMiddleArmAction} isBottomArmAction={isBottomArmAction}
+          isMiddleArmAction={isMiddleArmAction} isBottomArmAction={isBottomArmAction} cameraArea={cameraArea}
         />
       </Canvas>
     </>
