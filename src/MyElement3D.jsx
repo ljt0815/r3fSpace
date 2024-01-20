@@ -60,6 +60,16 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                         ease: "power3.inOut"
                     }
                 )
+                gsap.timeline().to(
+                    ref.current.target,
+                    {
+                        duration: 2,
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                        ease: "power3.inOut"
+                    }
+                )
                 // state.camera.position.set(4, 10, 10);
                 // ref.current.target.set(0, 0, 0);
             }
@@ -74,6 +84,16 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                         ease: "power3.inOut"
                     }
                 )
+                gsap.timeline().to(
+                    ref.current.target,
+                    {
+                        duration: 2,
+                        x: 3,
+                        y: 3,
+                        z: 3,
+                        ease: "power3.inOut"
+                    }
+                )
                 // state.camera.position.set(-10, 5, -5);
                 // ref.current.target.set(3, 3, 3);
             }
@@ -85,6 +105,16 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                         x: 10,
                         y: -5,
                         z: -5,
+                        ease: "power3.inOut"
+                    }
+                )
+                gsap.timeline().to(
+                    ref.current.target,
+                    {
+                        duration: 2,
+                        x: -3,
+                        y: -3,
+                        z: -9,
                         ease: "power3.inOut"
                     }
                 )
