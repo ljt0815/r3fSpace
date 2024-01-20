@@ -1,27 +1,57 @@
 ﻿import { useFrame } from "@react-three/fiber"
 import { Environment, useGLTF, OrbitControls  } from "@react-three/drei"
 import { Matrix4, Vector3 } from "three";
+import gsap from "gsap";
 
-function MyElement3D() {
-    const model = useGLTF("./models/humangltf.gltf");
-    const mesh = model.nodes.Cube.clone();
-    console.log(mesh)
-    const bone = mesh.skeleton.bones[0];
+function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAction, isBottomArmAction}) {
+    const model = useGLTF("./models/robotarm.gltf");
+    console.log(model)
+    const mesh = model.nodes.Circle.clone();
+    const rootBone = mesh.skeleton.bones[0];
+    const topArmBone = mesh.skeleton.bones[1];
+    const middleArmBone = mesh.skeleton.bones[2];
+    const bottomArmBone = mesh.skeleton.bones[3];
+    const leftHandBone = mesh.skeleton.bones[4];
+    const rightHand = mesh.skeleton.bones[5];
+    leftHandBone.ani = 1;
 
-    useFrame((state, deltaTime) => {
+    useFrame((state, delta) => {
         // skinnedMeshRef.current.skeleton.update();
         updateVertexPositions(mesh, mesh.skeleton);
         mesh.skeleton.bones.forEach((bone) => {
             bone.updateMatrixWorld(true);
         });
-        bone.rotation.x += 0.01;
+        let boneOffset = 0.02 * leftHandBone.ani;
+        if (isHandAction) {
+            leftHandBone.rotation.x -= boneOffset;
+            rightHand.rotation.x += boneOffset;
+        }
+
+        // 방향전환
+        if (leftHandBone.rotation.x > -0.7)
+            leftHandBone.ani *= -1;
+        else if (leftHandBone.rotation.x < -1.5)
+            leftHandBone.ani *= -1;
+
+        // 루트 회전
+        if (isRootAction)
+            rootBone.rotation.z += 0.005;
+
+        if (isTopArmAction)
+            topArmBone.rotation.z += 0.005;
+
+        if (isMiddleArmAction)
+            middleArmBone.rotation.z += 0.005;
+
+        if (isBottomArmAction)
+            bottomArmBone.rotation.z += 0.005;
     });
 
     return (
         <>
             <Environment preset="sunset" />
             <OrbitControls />
-            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
+            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton}  />
         </>
     )
 }
