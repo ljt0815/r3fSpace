@@ -4,7 +4,7 @@ import { Matrix4, Vector3 } from "three";
 import gsap from "gsap";
 import { useRef } from "react";
 
-function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAction, isBottomArmAction, cameraArea}) {
+function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAction, isBottomArmAction, cameraArea, isSave}) {
     const model = useGLTF("./models/robotarm.gltf");
     let isCameraUpdated = false;
     const mesh = model.nodes.Circle.clone();
@@ -14,19 +14,29 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
     const bottomArmBone = mesh.skeleton.bones[3];
     const leftHandBone = mesh.skeleton.bones[4];
     const rightHand = mesh.skeleton.bones[5];
-    const ref = useRef();
+    const orbitRef = useRef();
     leftHandBone.ani = 1;
     
-    useFrame((state, delta) => {
-        // skinnedMeshRef.current.skeleton.update();
+    useFrame((state) => {
         updateVertexPositions(mesh, mesh.skeleton);
         mesh.skeleton.bones.forEach((bone) => {
             bone.updateMatrixWorld(true);
         });
-        let boneOffset = 0.02 * leftHandBone.ani;
+        let boneOffset = 0.01 * leftHandBone.ani;
         if (isHandAction) {
             leftHandBone.rotation.x -= boneOffset;
             rightHand.rotation.x += boneOffset;
+        }
+
+        if (isSave) {
+            console.log("Asdf");
+            const jsonString = JSON.stringify(mesh, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'meshe.json';
+            link.click();
+            isSave = false;
         }
 
         // 방향전환
@@ -61,7 +71,7 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                     }
                 )
                 gsap.timeline().to(
-                    ref.current.target,
+                    orbitRef.current.target,
                     {
                         duration: 2,
                         x: 0,
@@ -70,8 +80,6 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                         ease: "power3.inOut"
                     }
                 )
-                // state.camera.position.set(4, 10, 10);
-                // ref.current.target.set(0, 0, 0);
             }
             else if (cameraArea == 1) {
                 gsap.timeline().to(
@@ -85,7 +93,7 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                     }
                 )
                 gsap.timeline().to(
-                    ref.current.target,
+                    orbitRef.current.target,
                     {
                         duration: 2,
                         x: 3,
@@ -94,8 +102,6 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                         ease: "power3.inOut"
                     }
                 )
-                // state.camera.position.set(-10, 5, -5);
-                // ref.current.target.set(3, 3, 3);
             }
             else if (cameraArea == 2) {
                 gsap.timeline().to(
@@ -109,7 +115,7 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                     }
                 )
                 gsap.timeline().to(
-                    ref.current.target,
+                    orbitRef.current.target,
                     {
                         duration: 2,
                         x: -3,
@@ -118,8 +124,6 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
                         ease: "power3.inOut"
                     }
                 )
-                // state.camera.position.set(10, -5, -5);
-                // ref.current.target.set(-3, -3, -3);
             }
             isCameraUpdated = true;
         }
@@ -127,10 +131,9 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
 
     return (
         <>
-            {/* <Environment preset="sunset" /> */}
             <directionalLight position={[1, 1, 1]} intensity={5}/>
-            <OrbitControls ref={ref}/>
-            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton}  />
+            <OrbitControls ref={orbitRef}/>
+            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
         </>
     )
 }
