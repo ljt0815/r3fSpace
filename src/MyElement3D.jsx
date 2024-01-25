@@ -160,8 +160,8 @@ function MyElement3D({isSave}) {
 
     return (
         <>
-            <Environment preset="sunset" />
-            <OrbitControls />
+            <directionalLight position={[3, 3, 3]} intensity={5}/>
+            <OrbitControls ref={orbitRef} />
             <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
         </>
     )
