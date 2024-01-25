@@ -2,12 +2,23 @@
 import { useGLTF, OrbitControls  } from "@react-three/drei"
 import { Matrix4, Vector3 } from "three";
 import gsap from "gsap";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
+import * as THREE from 'three';
+import { useSelector } from "react-redux"
 
-function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAction, isBottomArmAction, cameraArea, isSave}) {
+function MyElement3D({isSave, loadedModelRaw}) {
     const model = useGLTF("./models/robotarm.gltf");
-    let isCameraUpdated = false;
-    const mesh = model.nodes.Circle.clone();
+    const isHandAction = useSelector((state) => state.handAction.value);
+    const isRootAction = useSelector((state) => state.rootAction.value);
+    const isTopArmAction = useSelector((state) => state.topArmAction.value);
+    const isMiddleArmAction = useSelector((state) => state.middleArmAction.value);
+    const isBottomArmAction = useSelector((state) => state.bottomArmAction.value);
+    const cameraArea = useSelector((state) => state.cameraArea.value);
+    let isCameraUpdated;
+    useEffect(() => {
+        isCameraUpdated = false;
+    }, [cameraArea])
+    let mesh = model.nodes.Circle;
     const rootBone = mesh.skeleton.bones[0];
     const topArmBone = mesh.skeleton.bones[1];
     const middleArmBone = mesh.skeleton.bones[2];
@@ -16,12 +27,46 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
     const rightHand = mesh.skeleton.bones[5];
     const orbitRef = useRef();
     leftHandBone.ani = 1;
-    
-    useFrame((state) => {
-        updateVertexPositions(mesh, mesh.skeleton);
-        mesh.skeleton.bones.forEach((bone) => {
-            bone.updateMatrixWorld(true);
+    let loadedModel;
+    let skinnedMesh;
+    if (loadedModelRaw) {
+        loadedModel = JSON.parse(loadedModelRaw);
+        const tmp = new THREE.BufferGeometryLoader();
+        loadedModel = tmp.parse(loadedModel);
+        const geometry = new THREE.BufferGeometry();
+        geometry.attributes = loadedModel.mesh.geometries[0].data.attributes;
+
+        const materials = loadedModel.mesh.materials.map(materialData => {
+            return new THREE.MeshStandardMaterial(materialData);
         });
+
+        skinnedMesh = new THREE.SkinnedMesh(geometry, materials);
+        skinnedMesh.skeleton = {};
+        console.log(skinnedMesh);
+        skinnedMesh.skeleton.bones = loadedModel.skeleton.bones.map(boneData => {
+            const bone = new THREE.Bone();
+            bone.name = boneData.name;
+            bone.position.fromArray(boneData.position);
+            bone.rotation.fromArray(boneData.rotation);
+            bone.scale.fromArray(boneData.scale);
+            return bone;
+        });
+        skinnedMesh.bind(new THREE.Skeleton(skinnedMesh.skeleton.bones, loadedModel.skeleton.bones));
+        console.log(skinnedMesh)
+    }
+    useFrame((state) => {
+        if (!loadedModelRaw) {
+            updateVertexPositions(mesh, mesh.skeleton);
+            mesh.skeleton.bones.forEach((bone) => {
+                bone.updateMatrixWorld(true);
+            });
+        }
+        else {
+            updateVertexPositions(skinnedMesh, skinnedMesh.skeleton);
+            // skinnedMesh.skeleton.bones.forEach((bone) => {
+                // bone.updateMatrixWorld(true);
+            // });
+        }
         let boneOffset = 0.01 * leftHandBone.ani;
         if (isHandAction) {
             leftHandBone.rotation.x -= boneOffset;
@@ -30,7 +75,27 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
 
         if (isSave) {
             console.log("Asdf");
-            const jsonString = JSON.stringify(mesh, null, 2);
+
+            const serializedMesh = mesh.toJSON();
+
+            const serializedSkeleton = {
+                bones: mesh.skeleton.bones.map((bone) => {
+                    return {
+                        name: bone.name,
+                        position: bone.position.toArray(),
+                        rotation: bone.rotation.toArray(),
+                        scale: bone.scale.toArray(),
+                    };
+                }),
+            };
+
+            const combinedData = {
+                mesh: serializedMesh,
+                skeleton: serializedSkeleton,
+            };
+
+
+            const jsonString = JSON.stringify(combinedData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -133,7 +198,7 @@ function MyElement3D({isHandAction, isRootAction, isTopArmAction, isMiddleArmAct
         <>
             <directionalLight position={[1, 1, 1]} intensity={5}/>
             <OrbitControls ref={orbitRef}/>
-            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
+            {loadedModelRaw ? <skinnedMesh geometry={skinnedMesh.geometry} material={skinnedMesh.material} skeleton={skinnedMesh.skeleton} /> : <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} /> }
         </>
     )
 }
@@ -180,6 +245,6 @@ function updateVertexPositions(skinnedMesh, skeleton) {
     }
     // Mark the buffer as needing an update
     positionAttribute.needsUpdate = true;
-  }
+}
 
 export default MyElement3D
