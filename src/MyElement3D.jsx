@@ -3,10 +3,9 @@ import { useGLTF, OrbitControls  } from "@react-three/drei"
 import { Matrix4, Vector3 } from "three";
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
-import * as THREE from 'three';
 import { useSelector } from "react-redux"
 
-function MyElement3D({isSave, loadedModelRaw}) {
+function MyElement3D({isSave}) {
     const model = useGLTF("./models/robotarm.gltf");
     const isHandAction = useSelector((state) => state.handAction.value);
     const isRootAction = useSelector((state) => state.rootAction.value);
@@ -27,46 +26,11 @@ function MyElement3D({isSave, loadedModelRaw}) {
     const rightHand = mesh.skeleton.bones[5];
     const orbitRef = useRef();
     leftHandBone.ani = 1;
-    let loadedModel;
-    let skinnedMesh;
-    if (loadedModelRaw) {
-        loadedModel = JSON.parse(loadedModelRaw);
-        const tmp = new THREE.BufferGeometryLoader();
-        loadedModel = tmp.parse(loadedModel);
-        const geometry = new THREE.BufferGeometry();
-        geometry.attributes = loadedModel.mesh.geometries[0].data.attributes;
-
-        const materials = loadedModel.mesh.materials.map(materialData => {
-            return new THREE.MeshStandardMaterial(materialData);
-        });
-
-        skinnedMesh = new THREE.SkinnedMesh(geometry, materials);
-        skinnedMesh.skeleton = {};
-        console.log(skinnedMesh);
-        skinnedMesh.skeleton.bones = loadedModel.skeleton.bones.map(boneData => {
-            const bone = new THREE.Bone();
-            bone.name = boneData.name;
-            bone.position.fromArray(boneData.position);
-            bone.rotation.fromArray(boneData.rotation);
-            bone.scale.fromArray(boneData.scale);
-            return bone;
-        });
-        skinnedMesh.bind(new THREE.Skeleton(skinnedMesh.skeleton.bones, loadedModel.skeleton.bones));
-        console.log(skinnedMesh)
-    }
     useFrame((state) => {
-        if (!loadedModelRaw) {
-            updateVertexPositions(mesh, mesh.skeleton);
-            mesh.skeleton.bones.forEach((bone) => {
-                bone.updateMatrixWorld(true);
-            });
-        }
-        else {
-            updateVertexPositions(skinnedMesh, skinnedMesh.skeleton);
-            // skinnedMesh.skeleton.bones.forEach((bone) => {
-                // bone.updateMatrixWorld(true);
-            // });
-        }
+        updateVertexPositions(mesh, mesh.skeleton);
+        mesh.skeleton.bones.forEach((bone) => {
+            bone.updateMatrixWorld(true);
+        })
         let boneOffset = 0.01 * leftHandBone.ani;
         if (isHandAction) {
             leftHandBone.rotation.x -= boneOffset;
@@ -198,7 +162,7 @@ function MyElement3D({isSave, loadedModelRaw}) {
         <>
             <directionalLight position={[1, 1, 1]} intensity={5}/>
             <OrbitControls ref={orbitRef}/>
-            {loadedModelRaw ? <skinnedMesh geometry={skinnedMesh.geometry} material={skinnedMesh.material} skeleton={skinnedMesh.skeleton} /> : <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} /> }
+            <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
         </>
     )
 }
