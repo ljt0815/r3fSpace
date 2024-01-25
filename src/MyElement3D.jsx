@@ -160,8 +160,8 @@ function MyElement3D({isSave}) {
 
     return (
         <>
-            <directionalLight position={[1, 1, 1]} intensity={5}/>
-            <OrbitControls ref={orbitRef}/>
+            <Environment preset="sunset" />
+            <OrbitControls />
             <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
         </>
     )
@@ -209,6 +209,6 @@ function updateVertexPositions(skinnedMesh, skeleton) {
     }
     // Mark the buffer as needing an update
     positionAttribute.needsUpdate = true;
-}
+  }
 
 export default MyElement3D
