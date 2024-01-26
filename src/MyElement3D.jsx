@@ -3,69 +3,63 @@ import { useGLTF, OrbitControls  } from "@react-three/drei"
 import { Matrix4, Vector3 } from "three";
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux"
+import { useSelector } from "react-redux";
 
-function MyElement3D({isSave}) {
+const Circle = ({ position, myRef }) => {
+    return (
+      <mesh position={position} ref={myRef}>
+        <sphereGeometry args={[1, 32, 16]} />
+        <meshBasicMaterial color="blue" />
+      </mesh>
+    );
+};
+
+function MyElement3D() {
     const model = useGLTF("./models/robotarm.gltf");
+
+    // redux store들
     const isHandAction = useSelector((state) => state.handAction.value);
     const isRootAction = useSelector((state) => state.rootAction.value);
     const isTopArmAction = useSelector((state) => state.topArmAction.value);
     const isMiddleArmAction = useSelector((state) => state.middleArmAction.value);
     const isBottomArmAction = useSelector((state) => state.bottomArmAction.value);
     const cameraArea = useSelector((state) => state.cameraArea.value);
+    const equipItem = useSelector((state) => state.equipItem.value);
+    
     let isCameraUpdated;
     useEffect(() => {
         isCameraUpdated = false;
-    }, [cameraArea])
+    }, [cameraArea]);
+    
     let mesh = model.nodes.Circle;
+    // 뼈 정보
     const rootBone = mesh.skeleton.bones[0];
     const topArmBone = mesh.skeleton.bones[1];
     const middleArmBone = mesh.skeleton.bones[2];
     const bottomArmBone = mesh.skeleton.bones[3];
     const leftHandBone = mesh.skeleton.bones[4];
-    const rightHand = mesh.skeleton.bones[5];
+    const rightHandBone = mesh.skeleton.bones[5];
     const orbitRef = useRef();
     leftHandBone.ani = 1;
+
+    const sphereRef = useRef();
+    
     useFrame((state) => {
         updateVertexPositions(mesh, mesh.skeleton);
         mesh.skeleton.bones.forEach((bone) => {
             bone.updateMatrixWorld(true);
-        })
+        });
+
+        if (sphereRef.current)
+            sphereRef.current.position.copy(rightHandBone.position);
+        // if (sphereRef.current) {
+        //     rightHandBone.position; // 로컬 좌표계 계산해서 넣어보기
+        // }
+
         let boneOffset = 0.01 * leftHandBone.ani;
         if (isHandAction) {
             leftHandBone.rotation.x -= boneOffset;
-            rightHand.rotation.x += boneOffset;
-        }
-
-        if (isSave) {
-            console.log("Asdf");
-
-            const serializedMesh = mesh.toJSON();
-
-            const serializedSkeleton = {
-                bones: mesh.skeleton.bones.map((bone) => {
-                    return {
-                        name: bone.name,
-                        position: bone.position.toArray(),
-                        rotation: bone.rotation.toArray(),
-                        scale: bone.scale.toArray(),
-                    };
-                }),
-            };
-
-            const combinedData = {
-                mesh: serializedMesh,
-                skeleton: serializedSkeleton,
-            };
-
-
-            const jsonString = JSON.stringify(combinedData, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'meshe.json';
-            link.click();
-            isSave = false;
+            rightHandBone.rotation.x += boneOffset;
         }
 
         // 방향전환
@@ -162,6 +156,18 @@ function MyElement3D({isSave}) {
         <>
             <directionalLight position={[3, 3, 3]} intensity={5}/>
             <OrbitControls ref={orbitRef} />
+            {equipItem.map((obj, index) => {
+                switch (obj.type) {
+                case 'circle':
+                    return <Circle key={index} position={obj.position} myRef={sphereRef} />;
+                case 'cone':
+                    return <Cone key={index} position={obj.position} />;
+                case 'cube':
+                    return <Cube key={index} position={obj.position} />;
+                default:
+                    return null;
+                }
+            })}
             <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
         </>
     )

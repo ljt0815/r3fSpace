@@ -5,6 +5,7 @@ import topArmActionSlice from "./slices/topArmActionSlice";
 import middleArmActionSlice from "./slices/middleArmActionSlice";
 import bottomArmActionSlice from "./slices/bottomArmActionSlice";
 import cameraAreaSlice from "./slices/cameraAreaSlice";
+import equipItemSlice from "./slices/equipItemSlice";
 
 const store = configureStore({
     reducer:{
@@ -14,6 +15,7 @@ const store = configureStore({
         middleArmAction: middleArmActionSlice.reducer,
         bottomArmAction: bottomArmActionSlice.reducer,
         cameraArea: cameraAreaSlice.reducer,
+        equipItem: equipItemSlice.reducer,
     }
 });
 export default store;
