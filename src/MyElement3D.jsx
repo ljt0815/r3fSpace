@@ -2,14 +2,32 @@
 import { useGLTF, OrbitControls  } from "@react-three/drei"
 import { Matrix4, Vector3 } from "three";
 import gsap from "gsap";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useSelector } from "react-redux";
 
-const Circle = ({ position, myRef }) => {
+const Sphere = ({ position, myRef }) => {
     return (
       <mesh position={position} ref={myRef}>
-        <sphereGeometry args={[1, 32, 16]} />
+        <sphereGeometry args={[0.8, 32, 16]} />
         <meshBasicMaterial color="blue" />
+      </mesh>
+    );
+};
+
+const Cone = ({ position, myRef }) => {
+    return (
+      <mesh position={position} ref={myRef}>
+        <coneGeometry args={[1, 2, 16]} />
+        <meshBasicMaterial color="red" />
+      </mesh>
+    );
+};
+
+const Cube = ({ position, myRef }) => {
+    return (
+      <mesh position={position} ref={myRef}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial color="green" />
       </mesh>
     );
 };
@@ -39,22 +57,37 @@ function MyElement3D() {
     const bottomArmBone = mesh.skeleton.bones[3];
     const leftHandBone = mesh.skeleton.bones[4];
     const rightHandBone = mesh.skeleton.bones[5];
-    const orbitRef = useRef();
     leftHandBone.ani = 1;
-
-    const sphereRef = useRef();
     
+    const invertedMatrix = useMemo(() => new Matrix4(), []);
+    const orbitRef = useRef();
+    const sphereRef = useRef();
+    const coneRef = useRef();
+    const cubeRef = useRef();
+
     useFrame((state) => {
         updateVertexPositions(mesh, mesh.skeleton);
         mesh.skeleton.bones.forEach((bone) => {
             bone.updateMatrixWorld(true);
         });
-
-        if (sphereRef.current)
+        
+        if (sphereRef.current) {
             sphereRef.current.position.copy(rightHandBone.position);
-        // if (sphereRef.current) {
-        //     rightHandBone.position; // 로컬 좌표계 계산해서 넣어보기
-        // }
+            invertedMatrix.copy(bottomArmBone.matrixWorld);
+            sphereRef.current.position.applyMatrix4(invertedMatrix);
+        }
+
+        if (coneRef.current) {
+            coneRef.current.position.copy(rightHandBone.position);
+            invertedMatrix.copy(bottomArmBone.matrixWorld);
+            coneRef.current.position.applyMatrix4(invertedMatrix);
+        }
+
+        if (cubeRef.current) {
+            cubeRef.current.position.copy(rightHandBone.position);
+            invertedMatrix.copy(bottomArmBone.matrixWorld);
+            cubeRef.current.position.applyMatrix4(invertedMatrix);
+        }
 
         let boneOffset = 0.01 * leftHandBone.ani;
         if (isHandAction) {
@@ -158,12 +191,12 @@ function MyElement3D() {
             <OrbitControls ref={orbitRef} />
             {equipItem.map((obj, index) => {
                 switch (obj.type) {
-                case 'circle':
-                    return <Circle key={index} position={obj.position} myRef={sphereRef} />;
+                case 'sphere':
+                    return <Sphere key={index} position={obj.position} myRef={sphereRef} />;
                 case 'cone':
-                    return <Cone key={index} position={obj.position} />;
+                    return <Cone key={index} position={obj.position} myRef={coneRef} />;
                 case 'cube':
-                    return <Cube key={index} position={obj.position} />;
+                    return <Cube key={index} position={obj.position} myRef={cubeRef} />;
                 default:
                     return null;
                 }

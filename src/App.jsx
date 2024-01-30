@@ -21,7 +21,9 @@ function App() {
       <div style={{marginBottom: "5px"}}></div>
       <Button name="카메라 이동" onClick={() => dispatch({type:'cameraAreaSlice/moveArea'})}/>
       <div style={{marginBottom: "5px"}}></div>
-      <Button name="원 장착" onClick={() => dispatch({type:'equipItem/addCircle'})}/>
+      <Button name="원 장착" onClick={() => dispatch({type:'equipItem/equipSphere'})} />
+      <Button name="큐브 장착" onClick={() => dispatch({type:'equipItem/equipCube'})} />
+      <Button name="콘 장착" onClick={() => dispatch({type:'equipItem/equipCone'})} />
       <Canvas
         camera={{
           fov: 70,
