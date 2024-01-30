@@ -27,10 +27,9 @@ function App() {
       <Canvas
         camera={{
           fov: 70,
-          position: [4, 10, 10]
+          position: [4, 10, 10] 
         }}>
-        <MyElement3D 
-          isSave={isSave} />
+        <MyElement3D />
       </Canvas>
     </>
   )

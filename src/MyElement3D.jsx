@@ -59,7 +59,9 @@ function MyElement3D() {
     const rightHandBone = mesh.skeleton.bones[5];
     leftHandBone.ani = 1;
     
-    const invertedMatrix = useMemo(() => new Matrix4(), []);
+    const worldMatrix = useMemo(() => new Matrix4(), []);
+    const rotationMatrix = useMemo(() => new Matrix4(), []);
+
     const orbitRef = useRef();
     const sphereRef = useRef();
     const coneRef = useRef();
@@ -73,20 +75,25 @@ function MyElement3D() {
         
         if (sphereRef.current) {
             sphereRef.current.position.copy(rightHandBone.position);
-            invertedMatrix.copy(bottomArmBone.matrixWorld);
-            sphereRef.current.position.applyMatrix4(invertedMatrix);
+            worldMatrix.copy(bottomArmBone.matrixWorld);
+            sphereRef.current.position.applyMatrix4(worldMatrix);
         }
 
         if (coneRef.current) {
             coneRef.current.position.copy(rightHandBone.position);
-            invertedMatrix.copy(bottomArmBone.matrixWorld);
-            coneRef.current.position.applyMatrix4(invertedMatrix);
+            worldMatrix.copy(bottomArmBone.matrixWorld);
+            coneRef.current.position.applyMatrix4(worldMatrix);
+            const myRotation = bottomArmBone.rotation.clone();
+
+            rotationMatrix.makeRotationFromEuler(myRotation);
+            coneRef.current.rotation.setFromRotationMatrix(rotationMatrix);
+                        
         }
 
         if (cubeRef.current) {
             cubeRef.current.position.copy(rightHandBone.position);
-            invertedMatrix.copy(bottomArmBone.matrixWorld);
-            cubeRef.current.position.applyMatrix4(invertedMatrix);
+            worldMatrix.copy(bottomArmBone.matrixWorld);
+            cubeRef.current.position.applyMatrix4(worldMatrix);
         }
 
         let boneOffset = 0.01 * leftHandBone.ani;
