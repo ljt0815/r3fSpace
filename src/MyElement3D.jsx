@@ -9,7 +9,7 @@ const Sphere = ({ position, myRef }) => {
     return (
       <mesh position={position} ref={myRef}>
         <sphereGeometry args={[0.8, 32, 16]} />
-        <meshBasicMaterial color="blue" />
+        <meshStandardMaterial color="blue" />
       </mesh>
     );
 };
@@ -18,7 +18,7 @@ const Cone = ({ position, myRef }) => {
     return (
       <mesh position={position} ref={myRef}>
         <coneGeometry args={[1, 2, 16]} />
-        <meshBasicMaterial color="red" />
+        <meshStandardMaterial color="red" />
       </mesh>
     );
 };
@@ -27,7 +27,7 @@ const Cube = ({ position, myRef }) => {
     return (
       <mesh position={position} ref={myRef}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial color="green" />
+        <meshStandardMaterial color="green" />
       </mesh>
     );
 };
