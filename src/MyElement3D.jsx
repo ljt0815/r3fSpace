@@ -62,7 +62,7 @@ function MyElement3D() {
 
     let equipLocation = null;
     if (selectLocation === 'bottomArm')
-        equipLocation = bottomArmBone.clone();
+        equipLocation = bottomArmBone;
     else if (selectLocation === 'root')
         equipLocation = rootBone;
     else if (selectLocation === 'topArm')
@@ -102,7 +102,6 @@ function MyElement3D() {
             worldMatrix.copy(equipLocation.matrixWorld);
             coneRef.current.position.applyMatrix4(worldMatrix);
             const myRotation = equipLocation.rotation.clone();
-
             rotationMatrix.makeRotationFromEuler(myRotation);
             coneRef.current.rotation.setFromRotationMatrix(rotationMatrix);
                         
