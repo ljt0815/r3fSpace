@@ -1,7 +1,11 @@
 ﻿import { createSlice } from "@reduxjs/toolkit";
 const equipItemSlice = createSlice({
     name:'equipItem',
-    initialState:{value: []},
+    initialState:{value: {
+        sphere: null,
+        cube: null,
+        cone: null
+    }},
     reducers:{
         equipSphere:(state)=>{
             const newPosition = [
@@ -9,8 +13,7 @@ const equipItemSlice = createSlice({
                 Math.random() * 10 - 5,
                 Math.random() * 10 - 5
             ];
-            const newObject = { type: 'sphere', position: newPosition};
-            state.value = [...state.value, newObject];
+            state.value.sphere = newPosition;
         },
         equipCube:(state)=>{
             const newPosition = [
@@ -18,8 +21,7 @@ const equipItemSlice = createSlice({
                 Math.random() * 10 - 5,
                 Math.random() * 10 - 5
             ];
-            const newObject = { type: 'cube', position: newPosition};
-            state.value = [...state.value, newObject];
+            state.value.cube = newPosition;
         },
         equipCone:(state)=>{
             const newPosition = [
@@ -27,8 +29,12 @@ const equipItemSlice = createSlice({
                 Math.random() * 10 - 5,
                 Math.random() * 10 - 5
             ];
-            const newObject = { type: 'cone', position: newPosition};
-            state.value = [...state.value, newObject];
+            state.value.cone = newPosition;
+        },
+        deleteAll:(state)=>{
+            state.value.sphere = null;
+            state.value.cube = null;
+            state.value.cone = null;
         }
     }
 });

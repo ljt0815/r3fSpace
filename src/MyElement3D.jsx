@@ -43,12 +43,13 @@ function MyElement3D() {
     const isBottomArmAction = useSelector((state) => state.bottomArmAction.value);
     const cameraArea = useSelector((state) => state.cameraArea.value);
     const equipItem = useSelector((state) => state.equipItem.value);
+    const selectLocation = useSelector((state) => state.selectLocation.value);
     
     let isCameraUpdated;
     useEffect(() => {
         isCameraUpdated = false;
     }, [cameraArea]);
-    
+
     let mesh = model.nodes.Circle;
     // 뼈 정보
     const rootBone = mesh.skeleton.bones[0];
@@ -58,6 +59,20 @@ function MyElement3D() {
     const leftHandBone = mesh.skeleton.bones[4];
     const rightHandBone = mesh.skeleton.bones[5];
     leftHandBone.ani = 1;
+
+    let equipLocation = null;
+    if (selectLocation === 'bottomArm')
+        equipLocation = bottomArmBone.clone();
+    else if (selectLocation === 'root')
+        equipLocation = rootBone;
+    else if (selectLocation === 'topArm')
+        equipLocation = topArmBone;
+    else if (selectLocation === 'middleArm')
+        equipLocation = middleArmBone;
+    else if (selectLocation === 'leftHand')
+        equipLocation = leftHandBone;
+    else if (selectLocation === 'rightHand')
+        equipLocation = rightHandBone;
     
     const worldMatrix = useMemo(() => new Matrix4(), []);
     const rotationMatrix = useMemo(() => new Matrix4(), []);
@@ -72,28 +87,34 @@ function MyElement3D() {
         mesh.skeleton.bones.forEach((bone) => {
             bone.updateMatrixWorld(true);
         });
-        
-        if (sphereRef.current) {
-            sphereRef.current.position.copy(rightHandBone.position);
-            worldMatrix.copy(bottomArmBone.matrixWorld);
-            sphereRef.current.position.applyMatrix4(worldMatrix);
-        }
 
-        if (coneRef.current) {
-            coneRef.current.position.copy(rightHandBone.position);
-            worldMatrix.copy(bottomArmBone.matrixWorld);
+        if (equipLocation && sphereRef.current) {
+            sphereRef.current.position.copy(rootBone.position);
+            worldMatrix.copy(equipLocation.matrixWorld);
+            sphereRef.current.position.applyMatrix4(worldMatrix);
+            const myRotation = equipLocation.rotation.clone();
+            rotationMatrix.makeRotationFromEuler(myRotation);
+            sphereRef.current.rotation.setFromRotationMatrix(rotationMatrix);
+        }
+        
+        if (equipLocation && coneRef.current) {
+            coneRef.current.position.copy(rootBone.position);
+            worldMatrix.copy(equipLocation.matrixWorld);
             coneRef.current.position.applyMatrix4(worldMatrix);
-            const myRotation = bottomArmBone.rotation.clone();
+            const myRotation = equipLocation.rotation.clone();
 
             rotationMatrix.makeRotationFromEuler(myRotation);
             coneRef.current.rotation.setFromRotationMatrix(rotationMatrix);
                         
         }
 
-        if (cubeRef.current) {
-            cubeRef.current.position.copy(rightHandBone.position);
-            worldMatrix.copy(bottomArmBone.matrixWorld);
+        if (equipLocation && cubeRef.current) {
+            cubeRef.current.position.copy(rootBone.position);
+            worldMatrix.copy(equipLocation.matrixWorld);
             cubeRef.current.position.applyMatrix4(worldMatrix);
+            const myRotation = equipLocation.rotation.clone();
+            rotationMatrix.makeRotationFromEuler(myRotation);
+            cubeRef.current.rotation.setFromRotationMatrix(rotationMatrix);
         }
 
         let boneOffset = 0.01 * leftHandBone.ani;
@@ -192,22 +213,22 @@ function MyElement3D() {
         }
     });
 
+    const rendering = () => {
+        const result = [];
+        if (equipItem['sphere'])
+            result.push(<Sphere key={0} position={equipItem['sphere']} myRef={sphereRef} />);
+        if (equipItem['cone'])
+            result.push(<Cone key={1} position={equipItem['cone']} myRef={coneRef} />);
+        if (equipItem['cube'])
+            result.push(<Cube key={2} position={equipItem['cube']} myRef={cubeRef} />)
+        return result;
+    }
+
     return (
         <>
             <directionalLight position={[3, 3, 3]} intensity={5}/>
             <OrbitControls ref={orbitRef} />
-            {equipItem.map((obj, index) => {
-                switch (obj.type) {
-                case 'sphere':
-                    return <Sphere key={index} position={obj.position} myRef={sphereRef} />;
-                case 'cone':
-                    return <Cone key={index} position={obj.position} myRef={coneRef} />;
-                case 'cube':
-                    return <Cube key={index} position={obj.position} myRef={cubeRef} />;
-                default:
-                    return null;
-                }
-            })}
+            {rendering()}
             <skinnedMesh geometry={mesh.geometry} material={mesh.material} skeleton={mesh.skeleton} />
         </>
     )
