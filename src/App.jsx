@@ -2,16 +2,13 @@ import { Canvas } from '@react-three/fiber'
 import './App.css'
 import MyElement3D from "./MyElement3D";
 import Button from './Button';
-import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import SelectBox from './SelectBox';
-
+import GamePad from './Gamepad';
 
 function App() {
 
   const dispatch = useDispatch();
-  const [isSave, setSave] = useState(false);
-
   return (
     <>
       <Button name="루트회전" onClick={() => dispatch({type:'rootActionSlice/toggle'})}/>
@@ -36,6 +33,7 @@ function App() {
         }}>
         <MyElement3D />
       </Canvas>
+      <GamePad />
     </>
   )
 }
